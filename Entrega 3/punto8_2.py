@@ -1,0 +1,122 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+## lógica de programación ##
+
+class CalculoNotas:
+
+    def __init__(self):
+
+        self.arreglo_notas = [0.0] * 5
+        
+    def guardar_notas(self, valor1, valor2, valor3, valor4, valor5):
+    
+        try:
+            self.arreglo_notas[0] = float(valor1.strip())
+            self.arreglo_notas[1] = float(valor2.strip())
+            self.arreglo_notas[2] = float(valor3.strip())
+            self.arreglo_notas[3] = float(valor4.strip())
+            self.arreglo_notas[4] = float(valor5.strip())
+        except ValueError:
+            raise ValueError("Las notas deben ser valores numéricos.")
+
+    def obtener_promedio(self):
+        promedio_calculado = sum(self.arreglo_notas) / len(self.arreglo_notas)
+        return promedio_calculado
+    
+    def obtener_maximo(self):
+        nota_maxima = max(self.arreglo_notas)
+        return nota_maxima
+    
+    def obtener_minimo(self):
+        nota_minima = min(self.arreglo_notas)
+        return nota_minima
+    
+    def calcular_varianza(self):
+        media_actual = self.obtener_promedio()
+        suma_cuadrados = 0
+        
+        for elemento in self.arreglo_notas:
+            diferencia_actual = elemento - media_actual
+            suma_cuadrados += diferencia_actual ** 2
+            
+        varianza_resultado = suma_cuadrados / len(self.arreglo_notas)
+        return varianza_resultado
+
+    def obtener_desviacion(self):
+        varianza_actual = self.calcular_varianza()
+        desviacion_resultado = varianza_actual ** 0.5
+        return desviacion_resultado
+
+
+## interfaz gráfica ##
+
+class EstadisticasApp:
+    def __init__(self, ventana_principal):
+        self.ventana = ventana_principal
+        ventana_principal.title("Estadistica de Notas")
+        ventana_principal.resizable(False, False)
+
+        # crear la instancia de la clase
+        self.procesador = CalculoNotas() 
+        
+        self.campos_entrada = []
+        
+        # frame para las Entradas
+        frame_datos = ttk.Frame(ventana_principal, padding="15") 
+        frame_datos.pack(padx=10, pady=10)
+
+        for indice in range(5):
+            ttk.Label(frame_datos, text=f"Nota {indice + 1}:").grid(row=indice, column=0, padx=5, pady=5, sticky="w") 
+            campo = ttk.Entry(frame_datos, width=10)
+            campo.grid(row=indice, column=1, padx=5, pady=5) 
+            campo.insert(0, "0.0")
+            self.campos_entrada.append(campo)
+
+        # Botón que llama a la función de cálculo 
+        ttk.Button(ventana_principal, text="Calcular Resultados", command=self.procesar_datos).pack(pady=(5, 15)) 
+
+        # labels para los Resultados
+        frame_resultados = ttk.Frame(ventana_principal, padding="15")
+        frame_resultados.pack(padx=10, pady=10)
+        
+        self.texto_promedio = ttk.Label(frame_resultados, text="Promedio: ")
+        self.texto_promedio.pack(anchor='w', pady=2)
+        self.texto_maximo = ttk.Label(frame_resultados, text="Nota Mayor: ")
+        self.texto_maximo.pack(anchor='w', pady=2)
+        self.texto_minimo = ttk.Label(frame_resultados, text="Nota Menor: ")
+        self.texto_minimo.pack(anchor='w', pady=2)
+        self.texto_desviacion = ttk.Label(frame_resultados, text="Desviación Estándar: ")
+        self.texto_desviacion.pack(anchor='w', pady=2)
+
+    def procesar_datos(self):
+        """Maneja la interacción entre la GUI y la clase CalculoNotas."""
+        
+        try:
+            # Obtener los valores de la GUI
+            valores_ingresados = [campo.get() for campo in self.campos_entrada]
+
+            # Llamar al método de la clase para asignar los datos
+            self.procesador.guardar_notas(*valores_ingresados) 
+            
+            # Llamar a los métodos de cálculo y obtener los resultados
+            promedio_final = self.procesador.obtener_promedio()
+            nota_mas_alta = self.procesador.obtener_maximo()
+            nota_mas_baja = self.procesador.obtener_minimo()
+            desviacion_final = self.procesador.obtener_desviacion()
+
+            # actualizar la GUI
+            self.texto_promedio.config(text=f"Promedio: {promedio_final:.2f}")
+            self.texto_maximo.config(text=f"Nota Mayor: {nota_mas_alta:.1f}")
+            self.texto_minimo.config(text=f"Nota Menor: {nota_mas_baja:.1f}")
+            self.texto_desviacion.config(text=f"Desviación Estándar: {desviacion_final:.3f}")
+            
+        except ValueError as error:
+            # Captura el error de conversión y muestra el mensaje al usuario
+            messagebox.showerror("Error de Entrada", str(error))
+
+
+if __name__ == "__main__":
+    raiz = tk.Tk()
+    app = EstadisticasApp(raiz)
+    raiz.mainloop()
